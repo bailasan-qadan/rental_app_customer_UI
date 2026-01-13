@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/main_bottom_nav.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../../core/widgets/app_search_bar.dart';
+import '../../features/mainApp/search_screen.dart';
+import '../../features/booking/booking_screen.dart';
+import '../../features/mainApp/map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,8 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,27 +32,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const SizedBox(height: 16),
 
-                    // Image Card
+                    // Image / Hero
                     _imageCard(),
+                    const SizedBox(height: 16),
+
+                    // Search (Home-only)
+                    _searchCard(),
                     const SizedBox(height: 24),
 
+                    // Primary Action
                     _bookingCard(),
 
-                    // Marketing Card with Car Background
+                    // Marketing Card
                     const SizedBox(height: 16),
                     _marketingCard(),
                     const SizedBox(height: 16),
 
+                    // Categories
                     _sectionTitle('Browse Categories'),
                     const SizedBox(height: 12),
                     _categoriesRow(),
 
                     const SizedBox(height: 24),
 
-                    _sectionTitle('Featured Cars'),
-                    const SizedBox(height: 12),
-                    _featuredCars(),
-
+                    // Map
+                    _mapCard(),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -59,18 +65,41 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: MainBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+      bottomNavigationBar: MainBottomNav(currentIndex: 0),
+    );
+  }
+  // ===================== SECTIONS =====================
+
+  Widget _searchCard() {
+    return InkWell(
+      onTap: () {
+        // Navigate to SearchScreen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: IgnorePointer(
+        ignoring: true, // Prevent TextField from receiving touch
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.cardWhite,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.025),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const AppSearchBar(hint: 'Search for cars...'),
+        ),
       ),
     );
   }
-
-  // ===================== SECTIONS =====================
 
   Widget _imageCard() {
     return Container(
@@ -150,7 +179,14 @@ class _HomeScreenState extends State<HomeScreen> {
             left: 20,
             bottom: 20,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BookingScreen(),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 elevation: 0,
@@ -259,7 +295,15 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 24,
               bottom: 24,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Navigate to SearchScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.primary,
@@ -299,14 +343,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _categoryItem(IconData icon, String label) {
     return Column(
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: AppColors.cardWhite,
-            borderRadius: BorderRadius.circular(16),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchScreen(initialCategory: label),
+              ),
+            );
+          },
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 28),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 28),
         ),
         const SizedBox(height: 8),
         Text(
@@ -317,66 +371,97 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _featuredCars() {
-    return Column(
-      children: [
-        _carCard('Tesla Model 3', 'Automatic • Electric'),
-        const SizedBox(height: 12),
-        _carCard('BMW X5', 'Automatic • SUV'),
-      ],
-    );
-  }
-
-  Widget _carCard(String name, String details) {
+  Widget _mapCard() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      height: 180,
       decoration: BoxDecoration(
         color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 90,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.softBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.directions_car,
-              size: 36,
-              color: AppColors.primary,
-            ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          const SizedBox(width: 14),
-          Expanded(
+        ],
+      ),
+      child: Stack(
+        children: [
+          // ---------- Text Content ----------
+          Positioned(
+            left: 20,
+            top: 20,
+            right: 180, // Leave space for map image
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                  'Find Nearest Branch',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.primaryText,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 8),
                 Text(
-                  details,
-                  style: const TextStyle(
+                  'Discover our locations\nand visit us today',
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
+                    height: 1.4,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: AppColors.textSecondary,
+          // ---------- Button ----------
+          Positioned(
+            left: 20,
+            bottom: 20,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // Navigate to SearchScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                );
+              },
+              label: const Text(
+                'View Map',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+
+          // ---------- Map Image (Full View) ----------
+          Positioned(
+            right: -4,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/map.png',
+                width: 220,
+                fit: BoxFit.contain, // Changed from cover to contain
+              ),
+            ),
           ),
         ],
       ),

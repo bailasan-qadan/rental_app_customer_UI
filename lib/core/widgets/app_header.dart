@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../../features/mainApp/favorites_screen.dart';
+import '../../features/mainApp/notifications_screen.dart';
 
 class AppHeader extends StatelessWidget {
   final String greetingName;
@@ -22,74 +24,55 @@ class AppHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // -------- Row 1: Logo + Name | Notification --------
+          // ---------- Logo + App Name ----------
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/images/logo.png', // Your logo image
-                    width: 45,
-                    height: 45,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Autora',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryText,
-                    ),
-                  ),
-                ],
+              Image.asset('assets/images/logo.png', width: 45, height: 45),
+              const SizedBox(width: 12),
+              const Text(
+                'Autora',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryText,
+                ),
+              ),
+            ],
+          ),
+
+          // ---------- Icons ----------
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                  );
+                },
+                icon: const Icon(
+                  Icons.favorite_border_rounded,
+                  color: AppColors.textSecondary,
+                ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  );
+                },
                 icon: const Icon(
                   Icons.notifications_none_rounded,
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // -------- Search Bar --------
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search for cars...',
-              hintStyle: TextStyle(
-                color: AppColors.textSecondary.withOpacity(0.5),
-                fontSize: 14,
-              ),
-              prefixIcon: Icon(
-                Icons.search,
-                color: AppColors.textSecondary.withOpacity(0.7),
-                size: 22,
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF5F6FA),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
           ),
         ],
       ),
