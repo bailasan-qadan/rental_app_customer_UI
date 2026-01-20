@@ -1,7 +1,52 @@
 // lib/features/booking/presentation/booking_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/main_bottom_nav.dart';
+
+// Card Number Formatter
+class _CardNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll(' ', '');
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < text.length; i++) {
+      if (i > 0 && i % 4 == 0) buffer.write(' ');
+      buffer.write(text[i]);
+    }
+
+    return TextEditingValue(
+      text: buffer.toString(),
+      selection: TextSelection.collapsed(offset: buffer.length),
+    );
+  }
+}
+
+// Expiry Date Formatter
+class _ExpiryDateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll('/', '');
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < text.length; i++) {
+      if (i == 2) buffer.write('/');
+      buffer.write(text[i]);
+    }
+
+    return TextEditingValue(
+      text: buffer.toString(),
+      selection: TextSelection.collapsed(offset: buffer.length),
+    );
+  }
+}
 
 class BookingScreen extends StatefulWidget {
   final Map<String, dynamic>? preSelectedCar;
@@ -15,6 +60,15 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   int _currentStep = 0;
   final TextEditingController _searchController = TextEditingController();
+
+  // Payment form controllers
+  final TextEditingController _cardNumberController = TextEditingController();
+  final TextEditingController _cardHolderController = TextEditingController();
+  final TextEditingController _cvvController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  // Expiry date
+  DateTime? cardExpiryDate;
 
   // Booking data
   String? selectedCar;
@@ -38,6 +92,15 @@ class _BookingScreenState extends State<BookingScreen> {
       selectedCarType = widget.preSelectedCar!['type'] ?? 'Luxury';
       _currentStep = 1;
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _cardNumberController.dispose();
+    _cardHolderController.dispose();
+    _cvvController.dispose();
+    super.dispose();
   }
 
   // Sample car data
@@ -114,6 +177,7 @@ class _BookingScreenState extends State<BookingScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
+        automaticallyImplyLeading: false,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(20),
@@ -145,15 +209,15 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget _buildStepIndicator() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
             blurRadius: 12,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -165,7 +229,9 @@ class _BookingScreenState extends State<BookingScreen> {
           _buildStepLine(1),
           _buildStep(2, 'Location', Icons.location_on),
           _buildStepLine(2),
-          _buildStep(3, 'Confirm', Icons.check_circle),
+          _buildStep(3, 'Payment', Icons.payment),
+          _buildStepLine(3),
+          _buildStep(4, 'Review', Icons.check_circle),
         ],
       ),
     );
@@ -175,45 +241,44 @@ class _BookingScreenState extends State<BookingScreen> {
     final isActive = _currentStep >= step;
     final isCurrent = _currentStep == step;
 
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isActive ? AppColors.primary : Colors.grey.shade300,
-              shape: BoxShape.circle,
-              border: isCurrent
-                  ? Border.all(color: AppColors.primary, width: 3)
-                  : null,
-            ),
-            child: Icon(
-              icon,
-              color: isActive ? Colors.white : Colors.grey.shade600,
-              size: 20,
-            ),
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primary : Colors.grey.shade300,
+            shape: BoxShape.circle,
+            border: isCurrent
+                ? Border.all(color: AppColors.primary, width: 3)
+                : null,
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
-              color: isActive ? AppColors.primary : Colors.grey.shade600,
-            ),
+          child: Icon(
+            icon,
+            color: isActive ? Colors.white : Colors.grey.shade600,
+            size: 18,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? AppColors.primary : Colors.grey.shade600,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildStepLine(int step) {
     final isActive = _currentStep > step;
     return Expanded(
+      flex: 1,
       child: Container(
         height: 2,
-        margin: const EdgeInsets.only(bottom: 30),
+        margin: const EdgeInsets.only(bottom: 30, left: 4, right: 4),
         color: isActive ? AppColors.primary : Colors.grey.shade300,
       ),
     );
@@ -228,6 +293,8 @@ class _BookingScreenState extends State<BookingScreen> {
       case 2:
         return _buildLocationStep();
       case 3:
+        return _buildPaymentStep();
+      case 4:
         return _buildConfirmationStep();
       default:
         return Container();
@@ -236,7 +303,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
   // ==================== STEP 1: CAR SELECTION ====================
   Widget _buildCarSelectionStep() {
-    // If car is pre-selected, show it with option to change
     if (widget.preSelectedCar != null && selectedCar != null) {
       return Padding(
         padding: const EdgeInsets.all(16),
@@ -279,16 +345,21 @@ class _BookingScreenState extends State<BookingScreen> {
       );
     }
 
-    // Original car selection with search bar and grid
     return Column(
       children: [
-        // Search Bar
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.cardWhite,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +377,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: AppColors.softBackground,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: TextField(
                   controller: _searchController,
@@ -329,7 +400,6 @@ class _BookingScreenState extends State<BookingScreen> {
             ],
           ),
         ),
-        // Car Grid
         Expanded(
           child: filteredCars.isEmpty
               ? _emptyState()
@@ -386,7 +456,6 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Car image
             Stack(
               children: [
                 ClipRRect(
@@ -612,8 +681,13 @@ class _BookingScreenState extends State<BookingScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.1),
+                  AppColors.primary.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
@@ -658,8 +732,15 @@ class _BookingScreenState extends State<BookingScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.cardWhite,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -752,11 +833,18 @@ class _BookingScreenState extends State<BookingScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.cardWhite,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+            color: isSelected ? AppColors.primary : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -808,13 +896,350 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // ==================== STEP 4: CONFIRMATION ====================
+  // ==================== STEP 4: PAYMENT ====================
+  Widget _buildPaymentStep() {
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            'Payment Information',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryText,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Enter your card details securely',
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 24),
+
+          // Secure payment badge
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock, color: Colors.green, size: 20),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Your payment is secured with 256-bit SSL encryption',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Card Number
+          _buildSectionLabel('Card Number'),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _cardNumberController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(16),
+              _CardNumberInputFormatter(),
+            ],
+            decoration: InputDecoration(
+              hintText: '1234 5678 9012 3456',
+              prefixIcon: const Icon(
+                Icons.credit_card,
+                color: AppColors.primary,
+              ),
+              filled: true,
+              fillColor: AppColors.cardWhite,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter card number';
+              }
+              if (value.replaceAll(' ', '').length < 16) {
+                return 'Card number must be 16 digits';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // Card Holder Name
+          _buildSectionLabel('Card Holder Name'),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _cardHolderController,
+            keyboardType: TextInputType.name,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              hintText: 'John Doe',
+              prefixIcon: const Icon(Icons.person, color: AppColors.primary),
+              filled: true,
+              fillColor: AppColors.cardWhite,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter card holder name';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // Expiry and CVV
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionLabel('Expiry Date'),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _selectCardExpiryDate,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardWhite,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: cardExpiryDate == null
+                                ? Colors.grey.shade200
+                                : AppColors.primary,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                cardExpiryDate != null
+                                    ? '${cardExpiryDate!.month.toString().padLeft(2, '0')}/${cardExpiryDate!.year.toString().substring(2)}'
+                                    : 'MM/YY',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: cardExpiryDate == null
+                                      ? AppColors.textSecondary
+                                      : AppColors.primaryText,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionLabel('CVV'),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _cvvController,
+                      keyboardType: TextInputType.number,
+                      obscureText: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(3),
+                      ],
+                      decoration: InputDecoration(
+                        hintText: '123',
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: AppColors.primary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.cardWhite,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Colors.red),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        if (value.length < 3) {
+                          return 'Invalid';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Payment summary
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.1),
+                  AppColors.primary.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Payment Summary',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildPaymentRow('Rental Cost', _calculateRentalCost()),
+                const SizedBox(height: 8),
+                _buildPaymentRow('Insurance', '\$25'),
+                const SizedBox(height: 8),
+                _buildPaymentRow('Service Fee', '\$10'),
+                const Divider(height: 20),
+                _buildPaymentRow('Total', _calculateTotal(), isBold: true),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+            color: AppColors.primaryText,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: isBold ? AppColors.primary : AppColors.primaryText,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _calculateRentalCost() {
+    if (pickupDate == null || returnDate == null || selectedCarPrice == null) {
+      return '\$0';
+    }
+    final days = returnDate!.difference(pickupDate!).inDays;
+    final pricePerDay = int.tryParse(selectedCarPrice!) ?? 0;
+    return '\${days * pricePerDay}';
+  }
+
+  String _calculateTotal() {
+    if (pickupDate == null || returnDate == null || selectedCarPrice == null) {
+      return '\$35';
+    }
+    final days = returnDate!.difference(pickupDate!).inDays;
+    final pricePerDay = int.tryParse(selectedCarPrice!) ?? 0;
+    final total = (days * pricePerDay) + 25 + 10;
+    return '\$total';
+  }
+
+  // ==================== STEP 5: CONFIRMATION ====================
   Widget _buildConfirmationStep() {
     final days = returnDate != null && pickupDate != null
         ? returnDate!.difference(pickupDate!).inDays
         : 0;
     final pricePerDay = int.tryParse(selectedCarPrice ?? '89') ?? 89;
-    final totalPrice = days * pricePerDay;
+    final totalPrice = (days * pricePerDay) + 35;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -840,6 +1265,13 @@ class _BookingScreenState extends State<BookingScreen> {
           decoration: BoxDecoration(
             color: AppColors.cardWhite,
             borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -902,23 +1334,88 @@ class _BookingScreenState extends State<BookingScreen> {
           location: returnLocation ?? 'Not selected',
         ),
 
+        const SizedBox(height: 16),
+
+        // Payment method
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.cardWhite,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.payment,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '**** **** **** ${_cardNumberController.text.replaceAll(' ', '').substring(_cardNumberController.text.length - 4)}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 24),
 
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withOpacity(0.15),
+                AppColors.primary.withOpacity(0.05),
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             children: [
-              _buildPriceRow('Daily Rate', '\$$pricePerDay'),
+              _buildPriceRow('Daily Rate', '\$pricePerDay'),
               const SizedBox(height: 8),
               _buildPriceRow('Duration', '$days days'),
               const SizedBox(height: 8),
               _buildPriceRow('Insurance', '\$25'),
+              const SizedBox(height: 8),
+              _buildPriceRow('Service Fee', '\$10'),
               const Divider(height: 24),
-              _buildPriceRow('Total', '\$${totalPrice + 25}', isTotal: true),
+              _buildPriceRow('Total', '\$totalPrice', isTotal: true),
             ],
           ),
         ),
@@ -936,7 +1433,14 @@ class _BookingScreenState extends State<BookingScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1070,10 +1574,19 @@ class _BookingScreenState extends State<BookingScreen> {
             child: ElevatedButton(
               onPressed: _canProceed()
                   ? () {
-                      if (_currentStep < 3) {
-                        setState(() {
-                          _currentStep++;
-                        });
+                      if (_currentStep < 4) {
+                        if (_currentStep == 3) {
+                          // Validate payment form
+                          if (_formKey.currentState!.validate()) {
+                            setState(() {
+                              _currentStep++;
+                            });
+                          }
+                        } else {
+                          setState(() {
+                            _currentStep++;
+                          });
+                        }
                       } else {
                         _confirmBooking();
                       }
@@ -1085,9 +1598,10 @@ class _BookingScreenState extends State<BookingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                disabledBackgroundColor: Colors.grey.shade300,
               ),
               child: Text(
-                _currentStep == 3 ? 'Confirm Booking' : 'Continue',
+                _currentStep == 4 ? 'Confirm Booking' : 'Continue',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -1114,6 +1628,11 @@ class _BookingScreenState extends State<BookingScreen> {
       case 2:
         return pickupLocation != null && returnLocation != null;
       case 3:
+        return _cardNumberController.text.isNotEmpty &&
+            _cardHolderController.text.isNotEmpty &&
+            cardExpiryDate != null &&
+            _cvvController.text.isNotEmpty;
+      case 4:
         return true;
       default:
         return false;
@@ -1172,37 +1691,247 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  Future<void> _selectCardExpiryDate() async {
+    final now = DateTime.now();
+    final date = await showMonthPicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 20),
+    );
+    if (date != null) {
+      setState(() {
+        cardExpiryDate = date;
+      });
+    }
+  }
+
+  // Custom Month Picker
+  Future<DateTime?> showMonthPicker({
+    required BuildContext context,
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+  }) async {
+    return await showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        int selectedMonth = initialDate.month;
+        int selectedYear = initialDate.year;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Select Expiry Date',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              content: SizedBox(
+                width: 300,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Year Selector
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: () {
+                            if (selectedYear > firstDate.year) {
+                              setState(() {
+                                selectedYear--;
+                              });
+                            }
+                          },
+                        ),
+                        Text(
+                          selectedYear.toString(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: () {
+                            if (selectedYear < lastDate.year) {
+                              setState(() {
+                                selectedYear++;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Month Grid
+                    GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 2,
+                          ),
+                      itemCount: 12,
+                      itemBuilder: (context, index) {
+                        final month = index + 1;
+                        final isSelected = month == selectedMonth;
+                        final monthNames = [
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec',
+                        ];
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedMonth = month;
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                monthNames[index],
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.primaryText,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(
+                      context,
+                      DateTime(selectedYear, selectedMonth),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _confirmBooking() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Icon(Icons.check_circle, color: Colors.green, size: 64),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Text(
-              'Booking Confirmed!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Your booking has been successfully confirmed. Check your email for details.',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Return to home
-            },
-            child: const Text('Done'),
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 64,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Booking Confirmed!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Your booking has been successfully confirmed. A confirmation email has been sent to your email address with all the details.',
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/home',
+                      (route) => false,
+                    ); // Go to home and remove all previous routes
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

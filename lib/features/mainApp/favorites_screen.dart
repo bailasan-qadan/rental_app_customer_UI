@@ -127,7 +127,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: MainBottomNav(currentIndex: 0),
+      bottomNavigationBar: MainBottomNav(currentIndex: -1),
     );
   }
 

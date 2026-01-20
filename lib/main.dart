@@ -16,7 +16,7 @@ class CarRentalApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: appTheme(),
-      home: const HomeScreen(),
+      home: const WelcomeAppScreen(),
     );
   }
 }

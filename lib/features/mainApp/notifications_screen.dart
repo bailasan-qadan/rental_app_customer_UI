@@ -32,7 +32,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: MainBottomNav(currentIndex: 0),
+      bottomNavigationBar: MainBottomNav(currentIndex: -1),
     );
   }
 

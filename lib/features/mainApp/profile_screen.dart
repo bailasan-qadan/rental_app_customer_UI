@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/main_bottom_nav.dart';
-import 'book_details_screen.dart';
+import '../../features/booking/view_all_booking_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +16,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'Booking Updates': true,
     'Promotions & Offers': true,
     'New Cars Available': false,
-    'Payment Reminders': true,
   };
 
   @override
@@ -202,7 +201,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.history,
                       title: 'Booking History',
                       subtitle: 'View your past rentals',
-                      onTap: () => _showBookingHistoryDialog(context),
+                      onTap: () {
+                        // Close the dialog
+                        Navigator.pop(context);
+
+                        // Navigate to booking details screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewAllBookingsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     _menuCard(
@@ -687,191 +697,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showBookingHistoryDialog(BuildContext context) {
-    // Sample car data for each booking
-    final bookings = [
-      {
-        'carName': 'Tesla Model 3',
-        'date': 'Jan 5-8, 2026',
-        'status': 'Completed',
-        'statusColor': Colors.green,
-        'carData': {
-          'name': 'Tesla Model 3',
-          'price': '85',
-          'rating': 4.9,
-          'image': 'assets/images/car.png',
-          'transmission': 'Automatic',
-          'fuel': 'Electric',
-        },
-      },
-      {
-        'carName': 'BMW X5',
-        'date': 'Dec 20-25, 2025',
-        'status': 'Completed',
-        'statusColor': Colors.green,
-        'carData': {
-          'name': 'BMW X5',
-          'price': '120',
-          'rating': 4.8,
-          'image': 'assets/images/car_2.png',
-          'transmission': 'Automatic',
-          'fuel': 'Gasoline',
-        },
-      },
-      {
-        'carName': 'Mercedes C-Class',
-        'date': 'Dec 10-12, 2025',
-        'status': 'Cancelled',
-        'statusColor': Colors.red,
-        'carData': {
-          'name': 'Mercedes C-Class',
-          'price': '95',
-          'rating': 4.7,
-          'image': 'assets/images/car.png',
-          'transmission': 'Automatic',
-          'fuel': 'Gasoline',
-        },
-      },
-    ];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Booking History',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryText,
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: bookings.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final booking = bookings[index];
-              return _bookingHistoryItemWithData(
-                context: context, // ADD THIS
-                carName: booking['carName'] as String,
-                date: booking['date'] as String,
-                status: booking['status'] as String,
-                statusColor: booking['statusColor'] as Color,
-                carData: booking['carData'] as Map<String, dynamic>,
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Close',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _bookingHistoryItemWithData({
-    required BuildContext context, // ADD THIS
-    required String carName,
-    required String date,
-    required String status,
-    required Color statusColor,
-    required Map<String, dynamic> carData,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        // Close the dialog
-        Navigator.pop(context);
-
-        // Navigate to booking details screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BookingDetailsScreen(
-              car: carData,
-              bookingDate: date,
-              status: status,
-              statusColor: statusColor,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.softBackground,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.directions_car, color: AppColors.primary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    carName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryText,
-                    ),
-                  ),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: statusColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showHelpSupportDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -899,7 +724,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.email, color: AppColors.primary),
               title: const Text('Email Support'),
-              subtitle: const Text('support@rentalapp.com'),
+              subtitle: const Text('support@autora.com'),
               onTap: () {
                 Navigator.pop(context);
                 _showSnackBar(context, 'Opening email client...');
