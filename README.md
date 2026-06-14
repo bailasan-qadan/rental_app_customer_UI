@@ -1,74 +1,65 @@
 # Rental App Customer UI
 
-A Flutter-based mobile application that provides a complete customer experience for a vehicle rental platform. The app is designed with a modern and intuitive interface, allowing users to explore available vehicles, manage bookings, save favorites, and access their profiles seamlessly.
+## Overview
+
+Rental App Customer UI is a Flutter-based mobile application that provides a complete customer experience for a vehicle rental platform. The application enables users to discover available vehicles, manage bookings, save favorites, and access personalized account features through an intuitive and user-centered interface.
+
+The project was developed as an individual project using Flutter and Dart, with an emphasis on modern mobile design principles, reusable components, and scalable application structure.
 
 ---
 
 ## Features
 
-- Browse available rental vehicles
-- Search for vehicles
-- Add and manage favorite vehicles
-- Booking and reservation screens
-- Notifications center
-- User profile management
-- User authentication (Login and Sign Up)
-- Onboarding and welcome screens
-- Interactive map screen
-- Modern and responsive UI design
-- Reusable widgets and organized project structure
+### User Onboarding and Authentication
 
----
+* Welcome and onboarding screens
+* User login and registration interfaces
+* Authentication flow design
 
-## Screenshots
+### Vehicle Discovery
 
-Add screenshots of the application here to showcase the user interface.
+* Browse available rental vehicles
+* View detailed vehicle information
+* Search functionality for finding vehicles
+* Featured vehicle presentations
 
-Example:
+### Booking Experience
 
-| Welcome Screen | Home Screen | Vehicle Details |
-|---------------|-------------|------------------|
-| ![](screenshots/welcome.png) | ![](screenshots/home.png) | ![](screenshots/details.png) |
+* Booking and reservation interfaces
+* Booking details and confirmation screens
+* User-friendly booking workflow
+
+### User Engagement
+
+* Add and manage favorite vehicles
+* Notifications center
+* Personalized user interactions
+
+### Profile Management
+
+* User profile interface
+* Account information management
+* Profile customization screens
+
+### Additional Features
+
+* Interactive map integration
+* Responsive layouts for different screen sizes
+* Reusable widgets and consistent theming
+* Organized and maintainable project architecture
 
 ---
 
 ## Technologies Used
 
-- Flutter
-- Dart
-- Android Studio
-- VS Code
+### Mobile Development
 
----
+* Flutter
+* Dart
 
-## Project Structure
+### Development Tools
 
-```text
-lib/
-├── core/
-│   ├── theme/
-│   └── widgets/
-├── features/
-│   ├── authentication/
-│   ├── booking/
-│   ├── favorites/
-│   ├── home/
-│   ├── notifications/
-│   ├── profile/
-│   └── search/
-└── main.dart
-```
-
----
-
-## Prerequisites
-
-Before running the project, ensure you have the following installed:
-
-- Flutter SDK
-- Dart SDK
-- Android Studio or VS Code
-- Android Emulator or a physical device
+* Android Emulator / Physical Device Testing
 
 ---
 
@@ -102,16 +93,4 @@ flutter run
 
 ## Note
 
-This project focuses on the customer-side user interface and experience. Backend integration and live data functionality are not included in the current version.
-
----
-
-## Future Improvements
-
-- Firebase authentication integration
-- Backend and API integration
-- Real-time booking functionality
-- Payment gateway support
-- Booking history management
-- Enhanced filtering and search options
-
+This project focuses on the customer-side mobile application interface and user experience. Backend services and live data integration are not included in the current implementation.
