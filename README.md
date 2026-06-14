@@ -20,8 +20,3 @@ Rental App Customer UI is a Flutter-based mobile application interface designed 
 2. Run: flutter pub get
 3. Run: flutter run
 
-## Learning Outcomes
-- Flutter development
-- Mobile UI implementation
-- Responsive design
-- User experience design
