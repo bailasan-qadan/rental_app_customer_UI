@@ -1,40 +1,27 @@
-# Planning Trip Mobile App
+# Rental App Customer UI
 
 ## Overview
-
-Planning Trip Mobile App is a Flutter-based mobile application designed to help users organize and manage their travel plans. The application provides a user-friendly interface for trip planning and itinerary management.
+Rental App Customer UI is a Flutter-based mobile application interface designed for customers to browse and interact with rental services through a clean and user-friendly experience.
 
 ## Features
-
-* Trip planning and organization
-* User-friendly mobile interface
-* Responsive design for different screen sizes
-* Easy navigation between application screens
+- Modern and responsive user interface
+- Customer-focused navigation flow
+- Property/item browsing screens
+- Mobile-friendly design
+- Organized application structure
 
 ## Technologies Used
-
-* Flutter
-* Dart
-* Android Studio
+- Flutter
+- Dart
+- Android Studio
 
 ## Installation
-
-1. Clone the repository:
-   git clone https://github.com/bailasan-qadan/planning-trip-mobile-app.git
-
-2. Open the project in Android Studio or VS Code.
-
-3. Install dependencies:
-   flutter pub get
-
-4. Run the application:
-   flutter run
+1. Clone the repository.
+2. Run: flutter pub get
+3. Run: flutter run
 
 ## Learning Outcomes
-
-This project improved my skills in:
-
-* Flutter mobile development
-* Dart programming
-* UI implementation
-* Mobile application architecture
+- Flutter development
+- Mobile UI implementation
+- Responsive design
+- User experience design
