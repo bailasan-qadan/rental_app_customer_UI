@@ -1,16 +1,40 @@
-# rental_app
+# Planning Trip Mobile App
 
-A new Flutter project.
+## Overview
 
-## Getting Started
+Planning Trip Mobile App is a Flutter-based mobile application designed to help users organize and manage their travel plans. The application provides a user-friendly interface for trip planning and itinerary management.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+* Trip planning and organization
+* User-friendly mobile interface
+* Responsive design for different screen sizes
+* Easy navigation between application screens
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Technologies Used
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* Flutter
+* Dart
+* Android Studio
+
+## Installation
+
+1. Clone the repository:
+   git clone https://github.com/bailasan-qadan/planning-trip-mobile-app.git
+
+2. Open the project in Android Studio or VS Code.
+
+3. Install dependencies:
+   flutter pub get
+
+4. Run the application:
+   flutter run
+
+## Learning Outcomes
+
+This project improved my skills in:
+
+* Flutter mobile development
+* Dart programming
+* UI implementation
+* Mobile application architecture
